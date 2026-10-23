@@ -1,0 +1,5 @@
+A few things I couldn’t confirm, to keep in mind if you reuse this prompt:
+
+Map data: I have not been able to confirm that the CDN data URLs load, because the sandbox has no network.
+Divider outlines: The variance outlines are hand-placed, not county data, so they’re approximate.
+Hawaii: It is drawn in an inset, but I haven’t seen how it renders either.
