@@ -23,7 +23,7 @@ Eastern (America/New_York), Central (America/Chicago), Mountain (America/Denver)
 State assignments: all 50 states plus DC, by their primary zone (Eastern: MI IN KY OH WV VA NC SC GA FL PA NY VT NH ME MA CT RI NJ MD DE DC; Central: ND SD NE KS OK TX MN IA MO AR LA MS AL TN IL WI; Mountain: ID MT WY UT CO NM; Pacific: WA OR CA NV; plus AZ, AK, HI).
 
 ## Regional variances
-Shown as dated lines inside the parent card (area, time, UTC offset, status, note), and as zone colour areas with dividers on the map.
+Shown as lines inside the parent card (area, time, UTC offset, status, note), and as zone colour areas with dividers on the map.
 - BC East Kootenay: fixed UTC-06:00 ("Follows Alberta Time").
 - BC Golden / Columbia-Shuswap A: UTC-06:00 until 2026-11-01T08:00Z, then UTC-07:00. Map colour is the Alberta colour until the change and the BC colour after.
 - BC Northeast and Creston: UTC-07:00, same as BCT, so no divider is drawn.
@@ -36,18 +36,19 @@ Shown as dated lines inside the parent card (area, time, UTC offset, status, not
 ## Map
 - Libraries and data, pinned: d3 7.9.0 and topojson-client 3.1.0 from jsDelivr; world-atlas 2.0.2 countries-50m.json (international borders and coasts); Natural Earth v5.1.2 ne_50m_admin_1_states_provinces.geojson (province/state shapes) and ne_50m_lakes.geojson (lakes), via jsDelivr's GitHub mirror. Put the data URLs in constants at the top of the script. If the data fails to load, show a notice and still render the cards.
 - Albers conic projection rotated to -96°, fitted to a bounding box covering Alaska, Canada, and the contiguous US (Aleutians fall outside). Mexico is drawn as neutral dark grey. Hawaii is drawn in a small dashed inset at bottom-left. Puerto Rico, Guam, and American Samoa appear in the cards only.
-- Colours: ocean #0e1621. One muted colour per zone group, reused on cards and the legend. Eastern is shared by Ontario, Quebec, Nunavut, and US Eastern. Zones that never change clocks (BC, Alberta, Saskatchewan, Yukon, NWT, Manitoba, Arizona, Hawaii, territories) get a diagonal hatch overlay, explained in the legend.
+- Colours: ocean #0e1621. One muted colour per zone group, reused on cards and the legend. Eastern is shared by Ontario, Quebec, Nunavut, and US Eastern.
+- Hatch overlay: zones that never change clocks (BC, Alberta, Saskatchewan, Yukon, NWT, Manitoba, Arizona, Hawaii, territories) get a diagonal stripe overlay, explained in the legend. Define it as an SVG pattern (patternUnits userSpaceOnUse, 6x6 tile, rotated 45 degrees) containing one rectangle 6 wide by 3 tall filled rgba(0,0,0,.28), so the tile has transparent gaps and the result is visible alternating diagonal stripes, not a flat tint. Apply it with fill="url(#h)" on overlay shapes with pointer-events none. Use the same overlay on hatched regional variance areas and the Hawaii inset.
 - Borders, drawn in three levels: coastlines thin (0.5px), province/state borders mid (0.6px, light grey at 40% opacity), international borders heavy (1.8px, #e6ebf0), including a hand-placed line through the Great Lakes.
 - Great Lakes: paint Superior, Michigan, Huron, Erie, Ontario, St. Clair, and Georgian Bay over the state/province fills in a dark blue water colour (#16314a) with a thin outline. No lake name labels.
 - Time zone dividers: for each regional variance, draw an approximate region outline in its zone colour, clipped to the parent province/state, with a 1.4px white outline. Hatch it if its zone never changes clocks. Colours update at the minute tick.
 - Zone labels: one label per time zone, placed at the area-weighted centre of that zone (separately for Canada and the US, with Nunavut as its own label; if the centre falls in water, use the centre of the largest piece). Each label is two lines: zone name, then the current time. Use BCT, YKT, NWT, ABT, SKT, MBT, NUT, NLT, "Eastern", "Atlantic", "Pacific", "Mountain", "Central", "Arizona", and "Alaska". Hawaii's label goes above its inset. Labels have a dark halo for contrast of at least 4.5:1.
 
 ## Cards
-Canada: one card per province or territory, west to east. US: one card per zone with its states. Each card has a zone-colour top border, name, large 24-hour time, label with official abbreviation and UTC offset, a status tag, and the variance lines described above. Legend below the map shows each zone colour and the hatch key.
+Canada: one card per province or territory, west to east. US: one card per zone with its states. Each card has a zone-colour top border, name, large 24-hour time, label with official abbreviation and UTC offset, a status tag, and the variance lines described above. Legend below the map shows each zone colour and the hatch key (the legend swatches use a CSS repeating-linear-gradient for the stripes).
 
 ## Acceptance checks
 - Today (Oct 23, 2026): BCT is UTC-07:00, ABT is UTC-06:00, MBT is UTC-05:00, Ontario is UTC-04:00, East Kootenay and Golden are UTC-06:00.
 - After 02:00 local on Sunday Nov 1, 2026: BC, Alberta, Manitoba, NWT, Saskatchewan, Yukon, and East Kootenay do not change; Golden drops to UTC-07:00; Ontario, Quebec, Atlantic Canada, Newfoundland, Nunavut, and all US DST zones fall back one hour.
 - Every zone resolves without an invalid time zone error.
-- The map shows province, state, and international borders at three visible weights, the Great Lakes as water, and each zone label at the middle of its zone.
+- The map shows province, state, and international borders at three visible weights, the Great Lakes as water, each zone label at the middle of its zone, and alternating diagonal stripes on the hatched areas.
 - The only network requests are d3, topojson-client, and the three data files.
