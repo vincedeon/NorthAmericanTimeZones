@@ -14,4 +14,5 @@ https://ve6lk.com
 
 https://vincedeon.github.io/NorthAmericanTimeZones/time-zones-local.html
 
-<img width="1272" height="900" alt="NorthAmericanTimeZones screengrab" src="https://github.com/user-attachments/assets/895a053a-2899-497b-8e67-4a6fb2666e2e" />
+<img width="1259" height="896" alt="Screenshot 2026-10-23 at 13 00 58" src="https://github.com/user-attachments/assets/be91f040-666c-49e2-95e4-335df7837d46" />
+
