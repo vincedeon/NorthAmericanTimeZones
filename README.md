@@ -10,3 +10,5 @@ To use simply load the .html file in your favourite browser.
 Coded with Anthropic's Claude.
 
 73 de VE6LK
+
+<img width="1272" height="900" alt="NorthAmericanTimeZones screengrab" src="https://github.com/user-attachments/assets/895a053a-2899-497b-8e67-4a6fb2666e2e" />
