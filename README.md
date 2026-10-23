@@ -7,4 +7,6 @@ Use and modify to suit your needs.
 
 To use simply load the .html file in your favourite browser.
 
+Coded with Anthropic's Claude.
+
 73 de VE6LK
