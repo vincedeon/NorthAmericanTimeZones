@@ -78,7 +78,7 @@ const proj=d3.geoAlbers().rotate([96,0]).center([0,60]).parallels([45,70]).fitEx
 const path=d3.geoPath(proj);
 const grp=(f)=>{const p=f.properties,c=p.postal;if(p.adm0_a3=='CAN')return(CA.find(r=>r[6]==c)||[])[2];if(p.adm0_a3=='USA')return Object.keys(US).find(g=>US[g].split(' ').includes(c))};
 Promise.all([fetch(WURL).then(r=>r.json()),fetch(AURL).then(r=>r.json()),fetch(LURL).then(r=>r.json()).catch(()=>({features:[]}))]).then(([w,a,lk])=>{
- const df=svg.append('defs'),pt=df.append('pattern').attr('id','h').attr('width',6).attr('height',6).attr('patternUnits','userSpaceOnUse').attr('patternTransform','rotate(45)');pt.append('rect').attr('width',6).attr('height',6).attr('fill','rgba(0,0,0,.28)');
+ const df=svg.append('defs'),pt=df.append('pattern').attr('id','h').attr('width',6).attr('height',6).attr('patternUnits','userSpaceOnUse').attr('patternTransform','rotate(45)');pt.append('rect').attr('width',6).attr('height',3).attr('fill','rgba(0,0,0,.28)');
  const fs=a.features.filter(f=>['CAN','USA','MEX'].includes(f.properties.adm0_a3));
  const main=fs.filter(f=>f.properties.postal!='HI'||f.properties.adm0_a3!='USA');
  const gm=svg.append('g');
