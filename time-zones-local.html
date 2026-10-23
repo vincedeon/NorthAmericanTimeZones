@@ -109,6 +109,7 @@ Promise.all([fetch(WURL).then(r=>r.json()),fetch(AURL).then(r=>r.json()),fetch(L
  main.forEach(f=>{const g=grp(f);if(!g)return;const c=f.properties.adm0_a3=='CAN',k=g+(c?'c':'u')+(c&&f.properties.postal=='NU'?'n':'');(gf[k]=gf[k]||{g,c,nu:k.endsWith('n'),fl:[]}).fl.push(f)});
  for(const k in gf){const{g,c,nu,fl}=gf[k];let sx=0,sy=0,sa=0;fl.forEach(f=>{const a=path.area(f),q=path.centroid(f);sx+=q[0]*a;sy+=q[1]*a;sa+=a});let p=[sx/sa,sy/sa];
   if(!fl.some(f=>d3.geoContains(f,proj.invert(p))))p=path.centroid(fl.reduce((m,f)=>path.area(f)>path.area(m)?f:m));
+  if(g=='nl')p=proj([-56.2,48.7]); // put NLT over the island of Newfoundland, not Labrador
   const j=nu?J.find(x=>x.code=='NU'):J.find(x=>x.g==g&&x.r==(c?'ca':'us')),t=svg.append('text').attr('x',p[0]).attr('y',p[1]).attr('text-anchor','middle');
   t.append('tspan').text(nu?'NUT':ML[g]);labs.push({j,m:t.append('tspan').attr('x',p[0]).attr('dy',18).style('font-size','18px').node()})}
  const hx=bx[0]+bx[2]/2,ht=svg.append('text').attr('x',hx).attr('y',bx[1]-24).attr('text-anchor','middle');ht.append('tspan').text('Hawaii');labs.push({j:J.find(x=>x.g=='HI'),m:ht.append('tspan').attr('x',hx).attr('dy',18).style('font-size','18px').node()});
