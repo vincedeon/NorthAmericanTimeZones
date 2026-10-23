@@ -1,5 +1,1 @@
-A few things I couldn’t confirm, to keep in mind if you reuse this prompt:
-
-Map data: I have not been able to confirm that the CDN data URLs load, because the sandbox has no network.
-Divider outlines: The variance outlines are hand-placed, not county data, so they’re approximate.
-Hawaii: It is drawn in an inset, but I haven’t seen how it renders either.
+I haven’t seen the map render, because the sandbox can’t load the CDN data. The things to check when you open the file are the hatch stripes, the label placement, and the hand-drawn divider outlines.I haven’t seen the map render, because the sandbox can’t load the CDN data. The things to check when you open the file are the hatch stripes, the label placement, and the hand-drawn divider outlines.
