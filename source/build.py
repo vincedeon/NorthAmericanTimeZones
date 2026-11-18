@@ -9,7 +9,7 @@ Output: ../time-zones-local.html (the finished single-file page)
 """
 import json, pathlib
 
-VERSION = "1.6"
+VERSION = "1.7"
 HERE = pathlib.Path(__file__).parent
 VENDOR = HERE / "vendor"
 

@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>North American Time Zones</title>
 <!--
-  North American Time Zones — standalone edition v1.6 (2026-11-14)
+  North American Time Zones — standalone edition v1.7 (2026-11-18)
   Original page by Vince d'Eon, VE6LK (CC0): https://github.com/vincedeon/NorthAmericanTimeZones
   Standalone edition by Tom Salzer, KJ7T, also CC0. v1.1 additions: full width, UTC clock, home zone highlight, kiosk mode, 12/24-hour option,
-  Mexico, settings panel, fixed-width clocks (v1.2), Puerto Rico and US Virgin Islands on the map (v1.3), +1/−1 day markers (v1.4), credits and licence notes (v1.5), Kenora note updated (v1.6), and every library and map file baked into this one file (no internet needed).
+  Mexico, settings panel, fixed-width clocks (v1.2), Puerto Rico and US Virgin Islands on the map (v1.3), +1/−1 day markers (v1.4), credits and licence notes (v1.5), Kenora note updated (v1.6), unknown zones no longer blank the page plus on-page diagnostics (v1.7), and every library and map file baked into this one file (no internet needed).
   Bundled: D3 7.9.0 and topojson-client 3.1.0 (ISC licence, Mike Bostock), world-atlas 2.0.2 (ISC),
   Natural Earth admin-1 and lakes v5.1.2 (public domain), trimmed to Canada, the US and Mexico.
 -->
@@ -44,6 +44,7 @@ button:hover{border-color:var(--mu)}
 #map .hm{fill:#ffd24a}
 #map .td{font-size:calc(13px*var(--ms));font-weight:700;fill:#ffd24a}
 #msg{color:#c0504d;margin:8px 0}
+#diag{font:.8rem system-ui,sans-serif;opacity:.75;margin:4px 0 8px}
 #leg{display:flex;flex-wrap:wrap;gap:.5rem 1rem;margin:.6rem 0;color:var(--mu);font-size:.95rem}
 #leg i{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:5px}
 /* cards */
@@ -93,11 +94,11 @@ body.kiosk.idle .btns{opacity:0}
  <div class="btns"><button id="bk" title="Kiosk mode (K)">&#x26F6; Kiosk</button><button id="bs" title="Settings (S)">&#x2699; Settings</button></div>
 </div>
 <svg id="map" role="img" aria-label="Map of Canada, the United States and Mexico coloured by time zone"></svg>
-<div id="msg"></div><div id="leg" class="nk"></div>
+<div id="msg"></div><div id="diag"></div><div id="leg" class="nk"></div>
 <h2 class="nk">Canada</h2><div class="g nk" id="ca"></div>
 <h2 class="nk">United States</h2><div class="g nk" id="us"></div>
 <h2 class="nk">Mexico</h2><div class="g nk" id="mx"></div>
-<footer class="nk">Standalone edition v1.6 by Tom Salzer, KJ7T · Original map and time rules by Vince d'Eon, VE6LK · Both CC0 · Boundaries: Natural Earth (public domain) and world-atlas · Libraries: D3, topojson-client (ISC). Sub-zone outlines inside provinces and states are approximate.</footer>
+<footer class="nk">Standalone edition v1.7 by Tom Salzer, KJ7T · Original map and time rules by Vince d'Eon, VE6LK · Both CC0 · Boundaries: Natural Earth (public domain) and world-atlas · Libraries: D3, topojson-client (ISC). Sub-zone outlines inside provinces and states are approximate.</footer>
 </main>
 
 <dialog id="dlg"><form method="dialog">
@@ -184,8 +185,15 @@ const save=()=>{try{localStorage.setItem(SK,JSON.stringify(P))}catch(e){}};
 /* ---------- time helpers ---------- */
 const $=(t,a={},h='')=>{const e=document.createElement(t);for(const k in a)e.setAttribute(k,a[k]);e.innerHTML=h;return e};
 const pad=n=>String(n).padStart(2,'0'),oS=m=>(m<0?'-':'+')+pad(Math.abs(m)/60|0)+':'+pad(Math.abs(m)%60);
+/* ---------- v1.7: one zone the browser doesn't know must not stop the others ---------- */
+const BAD=new Set(),ERRS=[];
+function note(e){const m=String(e&&e.message||e);if(!ERRS.includes(m)){ERRS.push(m);showDiag()}}
+function showDiag(){const el=document.getElementById('diag');if(!el)return;if(!BAD.size&&!ERRS.length){el.textContent='';return}const ua=navigator.userAgent,b=(ua.match(/(Chrom(?:e|ium)|Firefox|Version)\/[\d.]+/)||[''])[0];
+ el.textContent='v1.7 · Browser: '+(b||ua)+' · Computer time zone: '+((()=>{try{return BROWSER_TZ}catch(_){return ''}})()||'unknown')+' · '+(BAD.size?'Zones this browser does not recognise: '+[...BAD].join(', '):'All time zones recognised')+(ERRS.length?' · Errors: '+ERRS.join(' | '):'')}
+window.addEventListener('error',ev=>note(ev.message));
 const dtf={},off=(tz,d)=>{const f=dtf[tz]||(dtf[tz]=new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric'}));const p={};f.formatToParts(d).forEach(x=>p[x.type]=+x.value);return Math.round((Date.UTC(p.year,p.month-1,p.day,p.hour,p.minute)-Math.floor(d/6e4)*6e4)/6e4)};
-function info(e,d){let m,st,ab;if(e.m=='f'){m=typeof e.a=='number'?e.a:e.a.filter(r=>r[0]<=d).pop()[1];st='Permanent UTC'+oS(m);ab=e.b||'UTC'+oS(m)}else{m=off(e.a,d);const y=d.getUTCFullYear(),j=off(e.a,new Date(Date.UTC(y,0,1))),l=off(e.a,new Date(Date.UTC(y,6,1))),dst=j!=l&&m>Math.min(j,l);st=j==l?'No DST':dst?'DST':'Standard';ab=e.b.split('/')[dst?1:0]}
+function info(e,d){try{return info0(e,d)}catch(err){if(e.m=='i')BAD.add(e.a);note(err);showDiag();return{m:0,st:'n/a',ab:'n/a',t:d,bad:1}}}
+function info0(e,d){let m,st,ab;if(e.m=='f'){m=typeof e.a=='number'?e.a:e.a.filter(r=>r[0]<=d).pop()[1];st='Permanent UTC'+oS(m);ab=e.b||'UTC'+oS(m)}else{m=off(e.a,d);const y=d.getUTCFullYear(),j=off(e.a,new Date(Date.UTC(y,0,1))),l=off(e.a,new Date(Date.UTC(y,6,1))),dst=j!=l&&m>Math.min(j,l);st=j==l?'No DST':dst?'DST':'Standard';ab=e.b.split('/')[dst?1:0]}
  return{m,st,ab,t:new Date(d.getTime()+m*6e4)}}
 const uS=m=>{const a=Math.abs(m);return 'UTC'+(m<0?'−':'+')+(a/60|0)+(a%60?':'+pad(a%60):'')};
 const hm=(t,sec,short)=>{let h=t.getUTCHours(),s=':'+pad(t.getUTCMinutes())+(sec?':'+pad(t.getUTCSeconds()):'');return S.h12?((h%12)||12)+s+(short?(h<12?'a':'p'):(h<12?' AM':' PM')):pad(h)+s};
@@ -208,6 +216,7 @@ function measureDigits(){const ref=document.getElementById('utc'),cs=getComputed
 
 /* ---------- home zone ---------- */
 const BROWSER_TZ=(()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone||''}catch(e){return ''}})();
+showDiag();
 const ALIAS={'America/Vancouver':'ca:British Columbia','America/Fort_Nelson':'v:Northeast BC (Fort St. John)','America/Dawson_Creek':'v:Northeast BC (Fort St. John)','America/Creston':'v:Creston','America/Dawson':'ca:Yukon','America/Yellowknife':'ca:Northwest Territories','America/Inuvik':'ca:Northwest Territories','America/Edmonton':'ca:Alberta','America/Swift_Current':'ca:Saskatchewan','America/Winnipeg':'ca:Manitoba','America/Rainy_River':'v:Northwest (Kenora)','America/Thunder_Bay':'ca:Ontario','America/Nipigon':'ca:Ontario','America/Montreal':'ca:Quebec','America/Atikokan':'v:Atikokan','America/Coral_Harbour':'v:Southampton Island','America/Blanc-Sablon':'v:Lower North Shore (Blanc-Sablon)','America/Pangnirtung':'ca:Nunavut','America/Resolute':'v:Kivalliq (Rankin Inlet)','America/Glace_Bay':'ca:Nova Scotia',
  'America/Detroit':'us:E','America/Indiana/Indianapolis':'us:E','America/Indianapolis':'us:E','America/Indiana/Vincennes':'us:E','America/Indiana/Winamac':'us:E','America/Indiana/Marengo':'us:E','America/Indiana/Petersburg':'us:E','America/Indiana/Vevay':'us:E','America/Kentucky/Louisville':'us:E','America/Louisville':'us:E','America/Kentucky/Monticello':'us:E','America/Indiana/Knox':'v:Indiana, NW and SW counties','America/Indiana/Tell_City':'v:Indiana, NW and SW counties','America/North_Dakota/Center':'us:C','America/North_Dakota/New_Salem':'us:C','America/North_Dakota/Beulah':'v:North Dakota, southwest','America/Boise':'us:M','America/Juneau':'us:AK','America/Sitka':'us:AK','America/Yakutat':'us:AK','America/Nome':'us:AK','America/Metlakatla':'us:AK','America/St_Thomas':'us:PR','Pacific/Saipan':'us:GU','America/Hermosillo':'mx:mxP','America/Monterrey':'mx:mxC','America/Merida':'mx:mxC','America/Chihuahua':'mx:mxC','America/Ensenada':'mx:mxN'};
 const byId=id=>J.find(x=>x.id==id)||VJ.find(x=>x.id==id);
@@ -308,10 +317,11 @@ function tick(force){const d=new Date();
  if(he){const i=info(he,d);clock(hTm,i.t,S.secs);hInf.textContent=he.n+' · '+i.ab+' · '+uS(i.m)+(i.t.getUTCDate()!=d.getUTCDate()?' · '+ymd(i.t):'')}
  const mn=Math.floor(d/6e4);if(!force&&mn==lastMin)return;lastMin=mn;
  refDay=dnum(he?info(he,d).t:d);
- J.forEach(j=>{const i=info(j,d);clock(j.tm,i.t,0);j.dy.textContent=dtxt(i.t,1);j.ou.textContent=uS(i.m);j.sub.textContent=j.r=='ca'?j.l+' ('+i.ab+')':i.ab;j.tg.textContent=i.st+(i.m%60?' · half-hour offset':'');j.card.classList.toggle('home',he===j)});
- VJ.forEach(v=>{const i=info(v,d);if(v.pe)v.pe.attr('fill',G[Array.isArray(v.a)?(i.m==-360?'abt':'pct'):v.g][0]);v.el.innerHTML=`${v.n}: <b class="tn">${hm(i.t)}</b>${dd(i.t)?' <span class="dyi">'+dtxt(i.t,1)+'</span>':''} · UTC${oS(i.m)} · ${i.st}${v.note?' · '+v.note:''}`;v.el.classList.toggle('home',he===v)});
+ J.forEach(j=>{try{const i=info(j,d);if(i.bad){j.tm.textContent='—';j.tm._k='';j.ou.textContent='zone not recognised by this browser';return}clock(j.tm,i.t,0);j.dy.textContent=dtxt(i.t,1);j.ou.textContent=uS(i.m);j.sub.textContent=j.r=='ca'?j.l+' ('+i.ab+')':i.ab;j.tg.textContent=i.st+(i.m%60?' · half-hour offset':'');j.card.classList.toggle('home',he===j)}catch(e){note(e)}});
+ VJ.forEach(v=>{try{const i=info(v,d);if(i.bad){if(v.pe)v.pe.attr('fill','#777');v.el.innerHTML=v.n+': <b>—</b> · zone not recognised by this browser';return}if(v.pe)v.pe.attr('fill',G[Array.isArray(v.a)?(i.m==-360?'abt':'pct'):v.g][0]);v.el.innerHTML=`${v.n}: <b class="tn">${hm(i.t)}</b>${dd(i.t)?' <span class="dyi">'+dtxt(i.t,1)+'</span>':''} · UTC${oS(i.m)} · ${i.st}${v.note?' · '+v.note:''}`;v.el.classList.toggle('home',he===v)}catch(e){note(e)}});
  if(he&&he.id.startsWith('v:'))(byKey['ca'+he.pk]||byKey['us'+he.pk]||byKey['mx'+he.pk]).classList.add('home');
- labs.forEach(l=>{const i=info(l.j,d);l.m.textContent=hm(i.t,0,1);l.u.textContent=uS(i.m);l.dn.textContent=dtxt(i.t)})}
+ try{drawLabels()}catch(e){note(e)}
+ labs.forEach(l=>{try{if(!l.j)return;const i=info(l.j,d);if(i.bad){l.m.textContent='—';return}l.m.textContent=hm(i.t,0,1);l.u.textContent=uS(i.m);l.dn.textContent=dtxt(i.t)}catch(e){note(e)}})}
 (function loop(){setTimeout(()=>{tick();loop()},1000-Date.now()%1000+20)})();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick(1)});
 
